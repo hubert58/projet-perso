@@ -7,6 +7,36 @@ import arrow
 # 1. CONFIGURATION
 # ==========================================
 
+# ==========================================
+# MAPPING DES ADRESSES (Pour Google Maps)
+# ==========================================
+ADRESSES_BATIMENTS = {
+    "M3": "Bâtiment M3, Avenue Carl Gauss, 59655 Villeneuve-d'Ascq",
+    "M5": "Bâtiment M5, Université de Lille, 59655 Villeneuve-d'Ascq",
+    "M1": "Bâtiment M1, Université de Lille, 59655 Villeneuve-d'Ascq",
+    "M2": "Bâtiment M2, Université de Lille, 59655 Villeneuve-d'Ascq",
+    "TP": "Bâtiment M3, Avenue Carl Gauss, 59655 Villeneuve-d'Ascq",
+    "Amphi": "Université de Lille, 59655 Villeneuve-d'Ascq",
+    "Halle": "Halle Vallin, 59655 Villeneuve-d'Ascq"
+}
+
+def enrichir_localisation(raw_location):
+    """
+    Transforme 'M3 A14' en 'M3 A14, Bâtiment M3, Avenue Carl Gauss...'
+    pour que Google Maps trouve le chemin.
+    """
+    if not raw_location:
+        return "Université de Lille, Villeneuve-d'Ascq"
+    
+    # On cherche si le nom du bâtiment est dans le texte (ex: "M3" dans "M3 A14")
+    for batiment, adresse in ADRESSES_BATIMENTS.items():
+        if batiment in raw_location:
+            # On retourne : "Nom de la salle, Adresse complète"
+            return f"{raw_location}, {adresse}"
+    
+    # Si on ne connait pas le bâtiment, on ajoute juste la ville pour aider Google
+    return f"{raw_location}, Université de Lille, 59655 Villeneuve-d'Ascq"
+
 URL_AGENDA = "https://www.fil.univ-lille.fr/~aubert/l3/agenda/2526-S6-All.json"
 OUTPUT_FILE = "data_export.ics"
 
@@ -113,7 +143,9 @@ def main():
                 e = Event()
                 e.name = item.get('title', 'Cours')
                 e.description = item.get('description', '')
-                e.location = item.get('location', '')
+                
+                raw_loc = item.get('location', '')
+                e.location = enrichir_localisation(raw_loc)
                 
                 # Gestion Date & Heure (Fuseau Paris)
                 try:
