@@ -21,15 +21,15 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r FilCalendar/requirements.txt
 
       - name: Run script
-        run: python calendarGeneratorCedric.py
+        run: python FilCalendar/calendarGeneratorCedric.py
 
       - name: Commit and Push ICS
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
-          git add agenda_fil.ics
+          git add agenda_cedric.ics
           git commit -m "Mise à jour automatique de l'agenda" || exit 0
           git push
