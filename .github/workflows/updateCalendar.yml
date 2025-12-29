@@ -1,0 +1,35 @@
+name: Update Agenda
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # S'exécute tous les jours à 6h00 UTC
+  workflow_dispatch: # Permet de lancer manuellement si besoin
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run script
+        run: python calendarGeneratorCedric.py
+
+      - name: Commit and Push ICS
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add agenda_fil.ics
+          git commit -m "Mise à jour automatique de l'agenda" || exit 0
+          git push
