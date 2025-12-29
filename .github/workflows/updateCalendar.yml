@@ -2,7 +2,7 @@ name: Update Agenda
 
 on:
   schedule:
-    - cron: '0 6 * * *' # S'exécute tous les jours à 6h00 UTC
+    - cron: '0 * * * *' # S'exécute tous les jours à 6h00 UTC
   workflow_dispatch: # Permet de lancer manuellement si besoin
 
 permissions:
