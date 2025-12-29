@@ -1,5 +1,6 @@
 import requests
 import re
+import hashlib
 from ics import Calendar, Event
 import arrow
 
@@ -150,6 +151,14 @@ def main():
             if est_pour_cedric(item):
                 e = Event()
                 e.name = item.get('title', 'Cours')
+
+                # --- AJOUT OPTIMISATION UID ---
+                # On crée une signature unique pour ce cours (ex: "2025-01-12T08:00:00_CM_JAVA")
+                # Comme ça, si le cours ne bouge pas, l'UID reste le même et Google ne recharge rien.
+                id_string = f"{item['start']}_{e.name}"
+                # On transforme ça en code unique propre
+                e.uid = hashlib.md5(id_string.encode('utf-8')).hexdigest() + "@cedric-agenda"
+                # ------------------------------
                 e.description = item.get('description', '')
                 
                 raw_loc = item.get('location', '')
