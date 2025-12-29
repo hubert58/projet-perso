@@ -4,11 +4,11 @@ from ics import Calendar, Event
 import arrow
 
 # ==========================================
-# 1. CONFIGURATION DE CÉDRIC
+# 1. CONFIGURATION
 # ==========================================
 
 URL_AGENDA = "https://www.fil.univ-lille.fr/~aubert/l3/agenda/2526-S6-All.json"
-OUTPUT_FILE = "agenda_cedric.ics"
+OUTPUT_FILE = "data_export.ics"
 
 # Dictionnaire de tes groupes : 'MATIERE': Numéro_Groupe
 # Note : Pour les CM (Cours Magistraux), le script les prendra automatiquement.
