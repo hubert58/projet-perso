@@ -127,6 +127,14 @@ def main():
                     e.begin = start
                     e.end = end
                     
+                    # ====================================================
+                    # AJOUT CEDRIC : Forcer "Toute la journée"
+                    # ====================================================
+                    # Si le titre contient "Interruption", on active le mode All Day
+                    if "Interruption" in e.name:
+                        e.make_all_day()
+                    # ====================================================
+                    
                     cal.events.add(e)
                     count += 1
                 except Exception as err:
