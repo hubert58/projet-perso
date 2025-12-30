@@ -192,6 +192,14 @@ def main():
             else:
                 ignored += 1
 
+        # ====================================================
+        # AMÉLIORATION : TRIER PAR DATE
+        # ====================================================
+        # On trie les événements pour qu'ils soient toujours dans le même ordre dans le fichier.
+        # Cela évite que GitHub croie que tout le fichier a changé juste parce que l'ordre a bougé.
+        cal.events = sorted(cal.events, key=lambda x: x.begin)
+        # ====================================================
+
         # Sauvegarde
         with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
             f.writelines(cal)
