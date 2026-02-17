@@ -1,4 +1,3 @@
 requests
-ics
-arrow
-rich
+icalendar
+python-dateutil

@@ -1,8 +1,10 @@
 import requests
 import re
 import hashlib
-from ics import Calendar, Event
-import arrow
+from icalendar import Calendar, Event
+from dateutil import parser as dateutil_parser
+from datetime import timedelta
+import pytz
 
 # ==========================================
 # 1. CONFIGURATION
@@ -25,6 +27,8 @@ ADRESSES_BATIMENTS = {
     "Amphi": "Université de Lille, 59655 Villeneuve-d'Ascq",
     "Halle": "Halle Vallin, 59655 Villeneuve-d'Ascq"
 }
+
+PARIS_TZ = pytz.timezone('Europe/Paris')
 
 def enrichir_localisation(raw_location, title):
     """
@@ -144,51 +148,60 @@ def main():
         data = response.json()
         
         cal = Calendar()
+        cal.add('prodid', '-//Cedric Agenda//FR')
+        cal.add('version', '2.0')
+        cal.add('x-wr-calname', 'Agenda Cédric')
+        
         count = 0
         ignored = 0
+        events_list = []
 
         for item in data:
             if est_pour_cedric(item):
                 e = Event()
-                e.name = item.get('title', 'Cours')
+                title = item.get('title', 'Cours')
+                e.add('summary', title)
 
                 # --- AJOUT OPTIMISATION UID ---
                 # On crée une signature unique pour ce cours (ex: "2025-01-12T08:00:00_CM_JAVA")
                 # Comme ça, si le cours ne bouge pas, l'UID reste le même et Google ne recharge rien.
-                id_string = f"{item['start']}_{e.name}"
+                id_string = f"{item['start']}_{title}"
                 # On transforme ça en code unique propre
-                e.uid = hashlib.md5(id_string.encode('utf-8')).hexdigest() + "@cedric-agenda"
+                e.add('uid', hashlib.md5(id_string.encode('utf-8')).hexdigest() + "@cedric-agenda")
                 # ------------------------------
-                e.description = item.get('description', '')
+                e.add('description', item.get('description', ''))
                 
                 raw_loc = item.get('location', '')
-                # ON AJOUTE e.name ICI vvv
-                e.location = enrichir_localisation(raw_loc, e.name)
+                # ON AJOUTE title ICI vvv
+                e.add('location', enrichir_localisation(raw_loc, title))
                 
                 # Gestion Date & Heure (Fuseau Paris)
                 try:
-                    start = arrow.get(item['start'])
-                    end = arrow.get(item['end']) if item.get('end') else start.shift(minutes=90)
+                    start = dateutil_parser.parse(item['start'])
+                    end = dateutil_parser.parse(item['end']) if item.get('end') else start + timedelta(minutes=90)
                     
                     # Force le fuseau horaire si absent
-                    if start.tzinfo is None: start = start.replace(tzinfo='Europe/Paris')
-                    if end.tzinfo is None: end = end.replace(tzinfo='Europe/Paris')
-                    
-                    e.begin = start
-                    e.end = end
+                    if start.tzinfo is None:
+                        start = PARIS_TZ.localize(start)
+                    if end.tzinfo is None:
+                        end = PARIS_TZ.localize(end)
                     
                     # ====================================================
                     # AJOUT CEDRIC : Forcer "Toute la journée"
                     # ====================================================
                     # Si le titre contient "Interruption", on active le mode All Day
-                    if "Interruption" in e.name:
-                        e.make_all_day()
+                    if "Interruption" in title:
+                        e.add('dtstart', start.date())
+                        e.add('dtend', (end.date() + timedelta(days=1)))
+                    else:
+                        e.add('dtstart', start)
+                        e.add('dtend', end)
                     # ====================================================
                     
-                    cal.events.add(e)
+                    events_list.append((start, e))
                     count += 1
                 except Exception as err:
-                    print(f"⚠️ Erreur date sur {e.name}: {err}")
+                    print(f"⚠️ Erreur date sur {title}: {err}")
             else:
                 ignored += 1
 
@@ -197,12 +210,14 @@ def main():
         # ====================================================
         # On trie les événements pour qu'ils soient toujours dans le même ordre dans le fichier.
         # Cela évite que GitHub croie que tout le fichier a changé juste parce que l'ordre a bougé.
-        cal.events = sorted(cal.events, key=lambda x: x.begin)
+        events_list.sort(key=lambda x: x[0])
+        for _, e in events_list:
+            cal.add_component(e)
         # ====================================================
 
         # Sauvegarde
-        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            f.writelines(cal)
+        with open(OUTPUT_FILE, 'wb') as f:
+            f.write(cal.to_ical())
             
         print("="*40)
         print(f"✅ Agenda généré pour CÉDRIC")
