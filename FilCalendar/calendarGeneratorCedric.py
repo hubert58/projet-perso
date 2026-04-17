@@ -136,7 +136,7 @@ def est_pour_cedric(item):
     return True
 
 def main():
-    print(f"📥 Récupération des données depuis {URL_AGENDA}...")
+    print(f"Recuperation des donnees depuis {URL_AGENDA}...")
     
     try:
         response = requests.get(URL_AGENDA)
@@ -188,7 +188,7 @@ def main():
                     cal.events.add(e)
                     count += 1
                 except Exception as err:
-                    print(f"⚠️ Erreur date sur {e.name}: {err}")
+                    print(f"Erreur date sur {e.name}: {err}")
             else:
                 ignored += 1
 
@@ -205,14 +205,14 @@ def main():
             f.writelines(cal)
             
         print("="*40)
-        print(f"✅ Agenda généré pour CÉDRIC")
-        print(f"📅 Cours ajoutés : {count}")
-        print(f"🗑️ Cours ignorés : {ignored}")
-        print(f"👉 Fichier : {OUTPUT_FILE}")
+        print(f"Agenda genere pour CEDRIC")
+        print(f"Cours ajoutes : {count}")
+        print(f"Cours ignores : {ignored}")
+        print(f"Fichier : {OUTPUT_FILE}")
         print("="*40)
 
     except Exception as e:
-        print(f"❌ Erreur : {e}")
+        print(f"Erreur : {e}")
 
 if __name__ == "__main__":
     main()
