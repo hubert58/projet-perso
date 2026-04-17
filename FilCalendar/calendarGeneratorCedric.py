@@ -201,7 +201,7 @@ def main():
                     events_list.append((start, e))
                     count += 1
                 except Exception as err:
-                    print(f"⚠️ Erreur date sur {e.name}: {err}")
+                    print(f"Erreur date sur {title}: {err}")
             else:
                 ignored += 1
 
